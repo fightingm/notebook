@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Tween动画练习</title>
+	<style>
+		.demo {
+			width: 960px;
+			margin: 0 auto;
+			display: flex;
+			align-items: center;
+			flex-direction: column;
+			padding: 10px;
+			background: #f5f5f5;
+		}
+		#select {
+			padding: 10px;
+			border: 1px solid #ccc;
+			border-radius: 6px;
+			margin-bottom: 10px;
+			outline: none;
+		}
+		#box {
+			width: 200px;
+			height: 200px;
+			background: #607d8b;
+			opacity: 0.1;
+		}
+	</style>
+</head>
+<body>
+	<div class="demo">
+		<select id="select"></select>
+		<div id="box"></div>
+	</div>
+	<script>
+		Mx.prototype.animate = function (obj, d, fn) {
+			var _this = this;
+			var st = new Date().getTime();
+			var newobj = {};
+			for (var val in obj) {
+				var b = getStyle(this.el, val);
+				var c = obj[val] - b;
+				newobj[val] = {
+					b: b,
+					c: c,
+					t: obj[val]
+				}
+			}
+			(function() {
+				var et = new Date().getTime();
+				var t = et - st;
+				if(t > d) {
+					for (var val in newobj) {
+						if(val == 'opacity') {
+							_this.el.style[val] = obj[val];
+						}else {
+							_this.el.style[val] = obj[val] + 'px';
+						}
+					}
+					return;
+				}
+				for (var val in newobj) {
+					if(val == 'opacity') {
+						_this.el.style[val] = _this.Tween[fn](t, newobj[val].b, newobj[val].c, d);
+					}else {
+						_this.el.style[val] = _this.Tween[fn](t, newobj[val].b, newobj[val].c, d) + 'px';
+					}	
+				}
+				requestAnimationFrame(arguments.callee);
+			})();
+		}
+		Mx.prototype.get = function () {
+			return this.el;
+		}
+		var duration = 1500;
+		var btn = document.querySelector('#btn');
+		var box = $(document.querySelector('#box'));
+		var select = document.querySelector('#select');
+		var options = '';
+
+		for (var val in box.Tween) {
+			options += '<option value="'+ val +'">'+ val +'</option>';
+		}
+		select.innerHTML = options;
+
+		select.onchange = function () {
+			box.get().style.height = '200px';
+			box.get().style.opacity = '0.1';
+
+			box.animate({ height: 500, opacity: 1}, 1500, this.value);
+		};
+
+		function getStyle(obj, styleName){
+			if(obj.currentStyle){
+		        return parseFloat(obj.currentStyle[styleName]);
+		    }else{
+		        return parseFloat(getComputedStyle(obj,null)[styleName]);
+		    }
+		}
+		function $(el) {
+			return new Mx(el);
+		}
+		function Mx(el) {
+			var _this = this;
+			this.el = el;
+			this.timer = null;
+			this.Tween = { // 以下算子的参数分别表示: t:运行时间，b:开始量，c:总变化量，d:总时间
+							Linear: function(t,b,c,d){ 
+								return c*t/d + b; 
+							},
+							QuadeaseIn: function(t,b,c,d){
+								return c*(t/=d)*t + b;
+							},
+							QuadeaseOut: function(t,b,c,d){
+								return -c *(t/=d)*(t-2) + b;
+							},
+							QuadeaseInOut: function(t,b,c,d){
+								if ((t/=d/2) < 1) return c/2*t*t + b;
+								return -c/2 * ((--t)*(t-2) - 1) + b;
+							},
+							CubiceaseIn: function(t,b,c,d){
+									return c*(t/=d)*t*t + b;
+							},
+							CubiceaseOut: function(t,b,c,d){
+								return c*((t=t/d-1)*t*t + 1) + b;
+							},
+							CubiceaseInOut: function(t,b,c,d){
+								if ((t/=d/2) < 1) return c/2*t*t*t + b;
+								return c/2*((t-=2)*t*t + 2) + b;
+							},
+							QuarteaseIn: function(t,b,c,d){
+								return c*(t/=d)*t*t*t + b;
+							},
+							QuarteaseOut: function(t,b,c,d){
+								return -c * ((t=t/d-1)*t*t*t - 1) + b;
+							},
+							QuarteaseInOut: function(t,b,c,d){
+								if ((t/=d/2) < 1) return c/2*t*t*t*t + b;
+								return -c/2 * ((t-=2)*t*t*t - 2) + b;
+							},
+							QuinteaseIn: function(t,b,c,d){
+								return c*(t/=d)*t*t*t*t + b;
+							},
+							QuinteaseOut: function(t,b,c,d){
+								return c*((t=t/d-1)*t*t*t*t + 1) + b;
+							},
+							QuinteaseInOut: function(t,b,c,d){
+								if ((t/=d/2) < 1) return c/2*t*t*t*t*t + b;
+								return c/2*((t-=2)*t*t*t*t + 2) + b;
+							},
+							SineeaseIn: function(t,b,c,d){
+								return -c * Math.cos(t/d * (Math.PI/2)) + c + b;
+							},
+							SineeaseOut: function(t,b,c,d){
+								return c * Math.sin(t/d * (Math.PI/2)) + b;
+							},
+							SineeaseInOut: function(t,b,c,d){
+								return -c/2 * (Math.cos(Math.PI*t/d) - 1) + b;
+							},
+							ExpoeaseIn: function(t,b,c,d){
+								return (t==0) ? b : c * Math.pow(2, 10 * (t/d - 1)) + b;
+							},
+							ExpoeaseOut: function(t,b,c,d){
+								return (t==d) ? b+c : c * (-Math.pow(2, -10 * t/d) + 1) + b;
+							},
+							ExpoeaseInOut: function(t,b,c,d){
+								if (t==0) return b;
+								if (t==d) return b+c;
+								if ((t/=d/2) < 1) return c/2 * Math.pow(2, 10 * (t - 1)) + b;
+								return c/2 * (-Math.pow(2, -10 * --t) + 2) + b;
+							},
+							CirceaseIn: function(t,b,c,d){
+								return -c * (Math.sqrt(1 - (t/=d)*t) - 1) + b;
+							},
+							CirceaseOut: function(t,b,c,d){
+								return c * Math.sqrt(1 - (t=t/d-1)*t) + b;
+							},
+							CirceaseInOut: function(t,b,c,d){
+								if ((t/=d/2) < 1) return -c/2 * (Math.sqrt(1 - t*t) - 1) + b;
+								return c/2 * (Math.sqrt(1 - (t-=2)*t) + 1) + b;
+							},
+							ElasticeaseIn: function(t,b,c,d,a,p){
+								if (t==0) return b;  if ((t/=d)==1) return b+c;  if (!p) p=d*.3;
+								if (!a || a < Math.abs(c)) { a=c; var s=p/4; }
+								else var s = p/(2*Math.PI) * Math.asin (c/a);
+								return -(a*Math.pow(2,10*(t-=1)) * Math.sin( (t*d-s)*(2*Math.PI)/p )) + b;
+							},
+							ElasticeaseOut: function(t,b,c,d,a,p){
+								if (t==0) return b;  if ((t/=d)==1) return b+c;  if (!p) p=d*.3;
+								if (!a || a < Math.abs(c)) { a=c; var s=p/4; }
+								else var s = p/(2*Math.PI) * Math.asin (c/a);
+								return (a*Math.pow(2,-10*t) * Math.sin( (t*d-s)*(2*Math.PI)/p ) + c + b);
+							},
+							ElasticeaseInOut: function(t,b,c,d,a,p){
+								if (t==0) return b;  if ((t/=d/2)==2) return b+c;  if (!p) p=d*(.3*1.5);
+								if (!a || a < Math.abs(c)) { a=c; var s=p/4; }
+								else var s = p/(2*Math.PI) * Math.asin (c/a);
+								if (t < 1) return -.5*(a*Math.pow(2,10*(t-=1)) * Math.sin( (t*d-s)*(2*Math.PI)/p )) + b;
+								return a*Math.pow(2,-10*(t-=1)) * Math.sin( (t*d-s)*(2*Math.PI)/p )*.5 + c + b;
+							},
+							BackeaseIn: function(t,b,c,d,s){
+								if (s == undefined) s = 1.70158;
+								return c*(t/=d)*t*((s+1)*t - s) + b;
+							},
+							BackeaseOut: function(t,b,c,d,s){
+								if (s == undefined) s = 1.70158;
+								return c*((t=t/d-1)*t*((s+1)*t + s) + 1) + b;
+							},
+							BackeaseInOut: function(t,b,c,d,s){
+								if (s == undefined) s = 1.70158; 
+								if ((t/=d/2) < 1) return c/2*(t*t*(((s*=(1.525))+1)*t - s)) + b;
+								return c/2*((t-=2)*t*(((s*=(1.525))+1)*t + s) + 2) + b;
+							},
+							BounceeaseIn: function(t,b,c,d){
+								return c - _this.Tween.BounceeaseOut(d-t, 0, c, d) + b;
+							},
+							BounceeaseOut: function(t,b,c,d){
+								if ((t/=d) < (1/2.75)) {
+									return c*(7.5625*t*t) + b;
+								} else if (t < (2/2.75)) {
+									return c*(7.5625*(t-=(1.5/2.75))*t + .75) + b;
+								} else if (t < (2.5/2.75)) {
+									return c*(7.5625*(t-=(2.25/2.75))*t + .9375) + b;
+								} else {
+									return c*(7.5625*(t-=(2.625/2.75))*t + .984375) + b; 
+								}
+							},
+							BounceeaseInOut: function(t,b,c,d){
+								if (t < d/2) return _this.Tween.BounceeaseIn(t*2, 0, c, d) * .5 + b;
+								else return _this.Tween.BounceeaseOut(t*2-d, 0, c, d) * .5 + c*.5 + b;
+							}
+			};
+		}
+	</script>
+</body>
+</html>
